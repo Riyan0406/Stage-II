@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String          @id @default(uuid())
+  username        String          @unique
+  fullname        String
+  email           String          @unique
+  password        String
+  profile_picture String
+  bio             String
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
+  Like            Like[]
+  threads         Thread[]
+  replies         Reply[]
+  follower        UserFollowing[] @relation(name: "Follower")
+  UserFollowing   UserFollowing[] @relation(name: "Following")
+}
+
+model UserFollowing {
+  id              String    @id @default(uuid())
+  follower        User      @relation(name: "Follower", fields: [follwerId], references: [id], onDelete: Cascade)
+  follwerId       String
+  following       User      @relation(name: "Following", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId     String
+  followedAt      DateTime  @default(now())
+  isFollow        Boolean?  @default(false)
+}
+
+model Thread {
+  id              String    @id @default(uuid())
+  content         String
+  image           String?
+  created_at      DateTime   @default(now())
+  Like            Like[]
+  replies         Reply[]
+  user            User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id         String
+  isLike          Boolean?  @default(false)
+}
+
+model Reply {
+  id             String     @id @default(uuid())
+  content        String
+  image          String?
+  created_at     DateTime   @default(now())
+  Thread         Thread?    @relation(fields: [tread_id], references: [id], onDelete: Cascade)
+  tread_id       String
+  User           User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id        String
+}
+
+model Like {
+  id            String      @id @default(uuid())
+  user          User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id       String
+  thread        Thread      @relation(fields: [tread_id], references: [id], onDelete: Cascade)
+  tread_id      String
+}
